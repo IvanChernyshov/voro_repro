@@ -11,7 +11,7 @@ With the exact same input points + radii:
 
 The program also prints the **sum of all cell volumes**; in a correct periodic tessellation it should equal the box volume (`8^3 = 512`).
 
-> This repo is intended to be linked from an upstream issue report for Voro++.
+> This repo is linked to/from an upstream issue report for Voro++: [link](https://github.com/chr1shr/voro/issues/43).
 
 ---
 
