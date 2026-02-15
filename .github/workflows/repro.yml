@@ -1,0 +1,53 @@
+name: Reproduce Voro++ periodic power-diagram issue
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    name: Build and run (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Environment info
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Runner OS: $RUNNER_OS"
+          uname -a
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sw_vers
+            sysctl -n machdep.cpu.brand_string || true
+          else
+            lscpu | head -n 50 || true
+          fi
+          echo
+          echo "Compilers:" 
+          (c++ --version || true)
+          (clang++ --version || true)
+          (g++ --version || true)
+
+      - name: Build + run repro
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run.sh
+          ./run.sh "out_${RUNNER_OS}.txt"
+
+      - name: Upload output
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-${{ matrix.os }}
+          path: out_${{ runner.os }}.txt
+          if-no-files-found: error

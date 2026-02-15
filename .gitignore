@@ -1,0 +1,9 @@
+# Build artifacts
+repro
+*.o
+
+# Output logs
+out*.txt
+
+# macOS
+.DS_Store
