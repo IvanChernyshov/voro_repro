@@ -43,11 +43,46 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x ./run.sh
-          ./run.sh "out_${RUNNER_OS}.txt"
+          ./run.sh "out_${RUNNER_OS}_original.txt"
+
+      - name: Summarize output (informational)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_original.txt" --soft || true
+
+      - name: Build + run (patched Voro++)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_patched.sh
+          ./run_patched.sh "out_${RUNNER_OS}_patched.txt"
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_patched.txt" --expect pass
+
+      - name: Build + run (Linux aggressive flags, original Voro++)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_aggressive.sh
+          ./run_aggressive.sh "out_${RUNNER_OS}_aggressive_original.txt"
+          # This is expected to reproduce the macOS arm64 failure mode on many
+          # x86_64 Linux machines, but we keep it informational to avoid
+          # flaky CI if the runner's CPU/compiler happens to be "too stable".
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_aggressive_original.txt" --expect broken --soft || true
+
+      - name: Build + run (Linux aggressive flags, patched Voro++)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_aggressive_patched.sh
+          ./run_aggressive_patched.sh "out_${RUNNER_OS}_aggressive_patched.txt"
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_aggressive_patched.txt" --expect pass
 
       - name: Upload output
         uses: actions/upload-artifact@v4
         with:
           name: output-${{ matrix.os }}
-          path: out_${{ runner.os }}.txt
+          path: out_*.txt
           if-no-files-found: error

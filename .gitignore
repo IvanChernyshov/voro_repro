@@ -1,6 +1,7 @@
 # Build artifacts
 repro
 *.o
+.build/
 
 # Output logs
 out*.txt
