@@ -1,0 +1,109 @@
+diff -ruN a/src/container_3d.cc b/src/container_3d.cc
+--- a/src/container_3d.cc	2025-07-02 19:47:53.000000000 +0000
++++ b/src/container_3d.cc	2026-02-16 10:39:00.440700814 +0000
+@@ -286,7 +286,9 @@
+         id[ijk][co[ijk]]=n;
+         double *pp=p[ijk]+4*co[ijk]++;
+         *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-        if(max_radius<r) max_radius=r;
++        // Store a slightly inflated maximum radius to avoid borderline
++        // floating-point pruning decisions in radical (power diagram) mode.
++        if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+     }
+ }
+ 
+@@ -351,7 +353,8 @@
+ 
+     // Compute the global maximum radius using the per-thread values
+     for(int i=0;i<nt;i++) {
+-        if(max_radius<max_r[i]) max_radius=max_r[i];
++        // Merge per-thread maxima and keep max_radius slightly inflated (see comment above).
++        if(max_r[i]>=max_radius) max_radius=nextafter(max_r[i],HUGE_VAL);
+         max_r[i]=0.;
+     }
+ 
+@@ -403,7 +406,9 @@
+         vo.add(ijk,co[ijk]);
+         double *pp=p[ijk]+4*co[ijk]++;
+         *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-        if(max_radius<r) max_radius=r;
++        // Store a slightly inflated maximum radius to avoid borderline
++        // floating-point pruning decisions in radical (power diagram) mode.
++        if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+     }
+ }
+ 
+diff -ruN a/src/container_3d.hh b/src/container_3d.hh
+--- a/src/container_3d.hh	2025-07-02 19:47:53.000000000 +0000
++++ b/src/container_3d.hh	2026-02-16 10:39:14.612928930 +0000
+@@ -508,7 +508,9 @@
+             if(put_locate_block(ijk,x,y,z)) {
+                 double *pp=p[ijk]+4*co[ijk]++,tm=max_radius;
+                 *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-                if(r>max_radius) max_radius=r;
++                // Store a slightly inflated maximum radius to avoid borderline
++                // floating-point pruning decisions in radical (power diagram) mode.
++                if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+                 bool q=compute_cell(c,ijk,co[ijk]-1);
+                 co[ijk]--;max_radius=tm;
+                 return q;
+diff -ruN a/src/container_tri.cc b/src/container_tri.cc
+--- a/src/container_tri.cc	2025-07-02 19:47:53.000000000 +0000
++++ b/src/container_tri.cc	2026-02-16 10:39:45.949065403 +0000
+@@ -335,7 +335,8 @@
+ 
+     // Compute the global maximum radius using the per-thread values
+     for(int i=0;i<nt;i++) {
+-        if(max_radius<max_r[i]) max_radius=max_r[i];
++        // Merge per-thread maxima and keep max_radius slightly inflated.
++        if(max_r[i]>=max_radius) max_radius=nextafter(max_r[i],HUGE_VAL);
+         max_r[i]=0.;
+     }
+ 
+@@ -380,7 +381,9 @@
+     id[ijk][co[ijk]]=n;
+     double *pp=p[ijk]+4*co[ijk]++;
+     *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-    if(max_radius<r) max_radius=r;
++    // Store a slightly inflated maximum radius to avoid borderline
++    // floating-point pruning decisions in radical (power diagram) mode.
++    if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+ }
+ 
+ /** Put a particle into the correct region of the container.
+@@ -410,7 +413,9 @@
+     id[ijk][co[ijk]]=n;
+     double *pp=p[ijk]+4*co[ijk]++;
+     *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-    if(max_radius<r) max_radius=r;
++    // Store a slightly inflated maximum radius to avoid borderline
++    // floating-point pruning decisions in radical (power diagram) mode.
++    if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+ }
+ 
+ /** Put a particle into the correct region of the container, also recording
+@@ -440,7 +445,9 @@
+     vo.add(ijk,co[ijk]);
+     double *pp=p[ijk]+4*co[ijk]++;
+     *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-    if(max_radius<r) max_radius=r;
++    // Store a slightly inflated maximum radius to avoid borderline
++    // floating-point pruning decisions in radical (power diagram) mode.
++    if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+ }
+ 
+ /** Takes a particle position vector and computes the region index into which
+diff -ruN a/src/container_tri.hh b/src/container_tri.hh
+--- a/src/container_tri.hh	2025-07-02 19:47:53.000000000 +0000
++++ b/src/container_tri.hh	2026-02-16 10:39:57.301385569 +0000
+@@ -532,7 +532,9 @@
+             put_locate_block(ijk,x,y,z);
+             double *pp=p[ijk]+4*co[ijk]++,tm=max_radius;
+             *(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+-            if(r>max_radius) max_radius=r;
++            // Store a slightly inflated maximum radius to avoid borderline
++            // floating-point pruning decisions in radical (power diagram) mode.
++            if(r>=max_radius) max_radius=nextafter(r,HUGE_VAL);
+             bool q=compute_cell(c,ijk,co[ijk]-1);
+             co[ijk]--;max_radius=tm;
+             return q;

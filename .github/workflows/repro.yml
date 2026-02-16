@@ -33,25 +33,28 @@ jobs:
             lscpu | head -n 50 || true
           fi
           echo
-          echo "Compilers:" 
+          echo "Compilers:"
           (c++ --version || true)
           (clang++ --version || true)
           (g++ --version || true)
 
-      - name: Build + run repro
+      # --------------------------------------------------------------------
+      # Stable snapshot (mirrors the state discussed in the upstream issue)
+      # --------------------------------------------------------------------
+      - name: Build + run repro (stable snapshot)
         shell: bash
         run: |
           set -euo pipefail
           chmod +x ./run.sh
           ./run.sh "out_${RUNNER_OS}_original.txt"
 
-      - name: Summarize output (informational)
+      - name: Summarize output (stable snapshot, informational)
         shell: bash
         run: |
           set -euo pipefail
           python3 ./scripts/check_output.py "out_${RUNNER_OS}_original.txt" --soft || true
 
-      - name: Build + run (patched Voro++)
+      - name: Build + run (stable snapshot, patched)
         shell: bash
         run: |
           set -euo pipefail
@@ -59,7 +62,7 @@ jobs:
           ./run_patched.sh "out_${RUNNER_OS}_patched.txt"
           python3 ./scripts/check_output.py "out_${RUNNER_OS}_patched.txt" --expect pass
 
-      - name: Build + run (Linux aggressive flags, original Voro++)
+      - name: Build + run (Linux aggressive flags, stable snapshot, original)
         if: runner.os == 'Linux'
         shell: bash
         run: |
@@ -71,7 +74,7 @@ jobs:
           # flaky CI if the runner's CPU/compiler happens to be "too stable".
           python3 ./scripts/check_output.py "out_${RUNNER_OS}_aggressive_original.txt" --expect broken --soft || true
 
-      - name: Build + run (Linux aggressive flags, patched Voro++)
+      - name: Build + run (Linux aggressive flags, stable snapshot, patched)
         if: runner.os == 'Linux'
         shell: bash
         run: |
@@ -79,6 +82,48 @@ jobs:
           chmod +x ./run_aggressive_patched.sh
           ./run_aggressive_patched.sh "out_${RUNNER_OS}_aggressive_patched.txt"
           python3 ./scripts/check_output.py "out_${RUNNER_OS}_aggressive_patched.txt" --expect pass
+
+      # --------------------------------------------------------------------
+      # Development snapshot (active branch upstream)
+      # --------------------------------------------------------------------
+      - name: Build + run repro (dev snapshot)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_dev.sh
+          ./run_dev.sh "out_${RUNNER_OS}_dev_original.txt"
+
+      - name: Summarize output (dev snapshot, informational)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_dev_original.txt" --soft || true
+
+      - name: Build + run (dev snapshot, patched)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_dev_patched.sh
+          ./run_dev_patched.sh "out_${RUNNER_OS}_dev_patched.txt"
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_dev_patched.txt" --expect pass
+
+      - name: Build + run (Linux aggressive flags, dev snapshot, original)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_dev_aggressive.sh
+          ./run_dev_aggressive.sh "out_${RUNNER_OS}_dev_aggressive_original.txt"
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_dev_aggressive_original.txt" --expect broken --soft || true
+
+      - name: Build + run (Linux aggressive flags, dev snapshot, patched)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./run_dev_aggressive_patched.sh
+          ./run_dev_aggressive_patched.sh "out_${RUNNER_OS}_dev_aggressive_patched.txt"
+          python3 ./scripts/check_output.py "out_${RUNNER_OS}_dev_aggressive_patched.txt" --expect pass
 
       - name: Upload output
         uses: actions/upload-artifact@v4
