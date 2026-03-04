@@ -1,5 +1,8 @@
 # Voro++ periodic power-diagram repro + fix (stable + dev)
 
+> [!NOTE]
+> Fixed upstream in Voro++ master ([04fecfa](https://github.com/chr1shr/voro/commit/04fecfabd07edb289746b0af27969077ee65e5ce)) & dev ([aed2ef1](https://github.com/chr1shr/voro/commit/aed2ef128737b3b9b300c96a622de637ea33a7be)).
+
 [![Repro](https://github.com/IvanChernyshov/voro_repro/actions/workflows/repro.yml/badge.svg)](https://github.com/IvanChernyshov/voro_repro/actions/workflows/repro.yml)
 
 This repository is a minimal reproduction for a **platform-dependent inconsistency** in **Voro++** when computing a **radical Voronoi / power diagram** inside a **fully periodic orthorhombic box**.
